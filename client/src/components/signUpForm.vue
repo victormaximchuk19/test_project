@@ -21,19 +21,26 @@
     data () {
       return {
         user: {
-          firstName: null,
-          lastName: null,
-          email: null,
-          phoneNumber: null,
-          address: null,
-          password: null,
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNumber: "",
+          address: "",
+          password: ""
         }
       }
     },
     methods: {
-      async signUp () {
+      async signUp (e) {
+        e.preventDefault();
         try {
-          await authenticationService.register(this.user)
+          await authenticationService.register(this.user).then(response => {
+            if (response.data.token) { 
+              localStorage.authToken = response.data.token
+              localStorage.userId = response.data.userId
+              this.$router.push({ name: 'userProfile', params: { id: response.data.userId } })
+            }
+          })
         } catch (error){
           console.log(error)
         }

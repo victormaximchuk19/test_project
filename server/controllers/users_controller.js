@@ -1,23 +1,23 @@
 const User = require('../db/user');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
 signUp = async (body) => {
   try {
-    let hashedPassword = bcrypt.hash(body.password, 12);
-
+    let hashedPassword = await bcrypt.hash(body.password, 12);
+    
     let userParams = {
       firstName: body.firstName,
       lastName: body.lastName,
       email: body.email,
-      phoneNumber: body.number,
+      phoneNumber: body.phoneNumber,
       address: body.address,
       password: hashedPassword
     }
 
     let user = await User.findOne({ email: userParams.email });
-
+    
     if (!user) {
       let createdUser = new User(userParams);
       createdUser.save();
@@ -88,7 +88,7 @@ updateUser = async (userId, body) => {
     allowedProps.forEach((prop) => {
       if (req.body.hasOwnProperty(prop)) newUser[prop] = req.body[prop];
     });
-  
+
     let user = await User.findOneAndUpdate(
       {
         _id: userId
@@ -100,11 +100,30 @@ updateUser = async (userId, body) => {
         new: true
       }
     );
-  
+    
     return { message: 'Updated succesfully!' };
   } catch(error) {
     return { error: error }
   }
+}
+
+userData = async (userId) => {
+  try {
+    let user = await User.findById({ _id: userId });
+    if (user) {
+      return { 
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        email: user.email
+      } 
+    } else {
+      return { status: 404, message: "User doesn't exist" }
+    }
+  } catch (error) {
+    console.log(error);
+  } 
 }
 
 module.exports.signUp = signUp;
@@ -112,3 +131,4 @@ module.exports.signIn = signIn;
 module.exports.index = index;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUser = updateUser;
+module.exports.userData = userData
